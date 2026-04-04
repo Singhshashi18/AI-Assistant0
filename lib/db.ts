@@ -22,7 +22,7 @@ export async function connectDB() {
 
   if (!MONGODB_URI) {
     throw new Error("MONGODB_URI not defined");
-  }
+  }    
 
   if (mongooseCache.conn) return mongooseCache.conn;
 
