@@ -13,7 +13,7 @@ let cached = global.mongooseCache;
 
 if (!cached) {
   cached = global.mongooseCache = { conn: null, promise: null };
-}
+}  
 
 const mongooseCache = cached;
 
