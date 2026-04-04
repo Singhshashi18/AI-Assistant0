@@ -21,13 +21,15 @@ if (!cached) {
   cached = global.mongooseCache = { conn: null, promise: null };
 }
 
-export async function connectDB() {
-  if (cached.conn) return cached.conn;
+const mongooseCache = cached;
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
+export async function connectDB() {
+  if (mongooseCache.conn) return mongooseCache.conn;
+
+  if (!mongooseCache.promise) {
+    mongooseCache.promise = mongoose.connect(MONGODB_URI).then((mongoose) => mongoose);
   }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  mongooseCache.conn = await mongooseCache.promise;
+  return mongooseCache.conn;
 }

@@ -890,7 +890,7 @@ export default function Home() {
                 
                 <div className="pt-4 flex space-x-3">
                   <button
-                    onClick={() => updateUser(user)}
+                    onClick={() => user && updateUser(user)}
                     className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                   >
                     Save Changes
@@ -1046,7 +1046,10 @@ export default function Home() {
                       <select
                         value={tempPreferences.theme}
                         onChange={(e) => {
-                          setTempPreferences({ ...tempPreferences, theme: e.target.value });
+                          setTempPreferences({
+                            ...tempPreferences,
+                            theme: e.target.value as UserPreferences["theme"],
+                          });
                           setPreferencesChanged(true);
                         }}
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
