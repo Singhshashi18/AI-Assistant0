@@ -10,7 +10,6 @@ pnpm-debug.log*
 .env.*
 !.env.example
 coverage
-Dockerfile
 docker-compose.yml
 .DS_Store
 README.md

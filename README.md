@@ -46,7 +46,7 @@ docker build -t plainreply .
 Run it with the required environment variables:
 
 ```bash
-docker run --rm -p 4050:4050 \
+docker run --rm -p 3000:3000 \
 	-e MONGODB_URI="your-mongodb-uri" \
 	-e JWT_SECRET="your-jwt-secret" \
 	-e OPENAI_API_KEY="your-openai-key" \
@@ -65,17 +65,39 @@ The repository includes a GitHub Actions workflow in [.github/workflows/ci.yml](
 
 ## CD Pipeline
 
-The repository also includes [.github/workflows/cd.yml](.github/workflows/cd.yml), which builds and publishes the Docker image to GitHub Container Registry and deploys it to `116.202.210.102` on pushes to `dev` and `main`.
+The repository includes [.github/workflows/cd.yml](.github/workflows/cd.yml), which builds and publishes the Docker image to Docker Hub on pushes to `dev` and `main`.
 
-What you need to do:
+## Render Deployment
 
-1. Add these repository secrets in GitHub:
-	- `SERVER_USER` (SSH user on `116.202.210.102`)
-	- `SERVER_SSH_KEY` (private key for that user)
-	- `GHCR_USERNAME` (GitHub username that can read packages)
-	- `GHCR_TOKEN` (GitHub PAT with `read:packages`)
-	- `MONGODB_URI`
-	- `JWT_SECRET`
-	- `OPENAI_API_KEY`
-2. On the server, install Docker and ensure the SSH user can run `docker`.
-3. Push to `dev` or `main` branch. GitHub Actions will publish and redeploy automatically.
+**Setup:**
+
+1. Add these GitHub repository secrets:
+   - `DOCKERHUB_USERNAME` (your Docker Hub username)
+   - `DOCKERHUB_TOKEN` (Docker Hub access token)
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `OPENAI_API_KEY`
+
+2. Create a free account on [Render](https://render.com).
+
+3. Choose one of two deployment options:
+
+   **Option A: Deploy from Docker Hub (Recommended)**
+   - In Render dashboard, create a new "Web Service".
+   - Select "Docker Image" as the runtime.
+   - Enter image URL: `docker.io/<your-dockerhub-username>/plainreply:dev` or `:main`.
+   - Add environment variables: `MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`.
+   - Render automatically injects `PORT`; no fixed port value is needed.
+   - Deploy and access via Render's URL.
+
+   **Option B: Deploy from GitHub (Automatic Rebuilds)**
+   - In Render dashboard, create a new "Web Service".
+   - Connect your GitHub repository.
+   - Set root directory: `plainreply`.
+   - Set build command: `npm ci && npm run build`.
+   - Set start command: `npm run start`.
+   - Add environment variables: `MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`.
+   - Render automatically injects `PORT`; no fixed port value is needed.
+   - Deploy and access via Render's URL.
+
+4. Every push to `dev` or `main` will trigger CI and publish a new image. Render will auto-redeploy if connected to Docker Hub or GitHub.
