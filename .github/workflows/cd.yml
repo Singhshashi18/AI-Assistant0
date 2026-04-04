@@ -31,11 +31,10 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/plainreply
+          images: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/plainreply
           tags: |
             type=ref,event=branch
-            type=sha,prefix=
-            type=semver,pattern={{version}}
+            type=sha,prefix={{branch}}-
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
