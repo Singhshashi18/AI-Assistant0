@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: plainreply
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MONGODB_URI
+        scope: run
+      - key: JWT_SECRET
+        scope: run
+      - key: OPENAI_API_KEY
+        scope: run

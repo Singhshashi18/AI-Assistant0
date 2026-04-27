@@ -3,15 +3,41 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+
+type User = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+type ConversationEntry = {
+  id: number;
+  conversation: string;
+  reply: string;
+  timestamp: string;
+  chars: number;
+};
+
+type UserPreferences = {
+  theme: "dark" | "light" | "auto";
+  autoSave: boolean;
+  notifications: boolean;
+  language: string;
+  soundEnabled: boolean;
+  autoComplete: boolean;
+  fontSize: string;
+  replyFormat: string;
+  maxReplyLength: number;
+};
 
 export default function Home() {
   const [conversation, setConversation] = useState("");
   const [reply, setReply] = useState("");
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -23,7 +49,7 @@ export default function Home() {
     totalCharsProcessed: 0,
     averageResponseTime: 2.3
   });  const [statsUpdated, setStatsUpdated] = useState(false);
-  const [preferences, setPreferences] = useState({
+  const [preferences, setPreferences] = useState<UserPreferences>({
     theme: 'dark',
     autoSave: true,
     notifications: true,
@@ -75,9 +101,14 @@ export default function Home() {
 
   const loadUserStats = (userId: string) => {
     // Get conversation history from localStorage for stats calculation
-    const conversationHistory = JSON.parse(localStorage.getItem(`conversations_${userId}`) || '[]');
+    const conversationHistory = JSON.parse(
+      localStorage.getItem(`conversations_${userId}`) || "[]"
+    ) as ConversationEntry[];
     const totalReplies = conversationHistory.length;
-    const totalChars = conversationHistory.reduce((acc: number, conv: any) => acc + (conv.conversation?.length || 0), 0);
+    const totalChars = conversationHistory.reduce(
+      (acc: number, conv) => acc + (conv.conversation?.length || 0),
+      0
+    );
     
     setUserStats({
       repliesGenerated: totalReplies,
@@ -90,8 +121,10 @@ export default function Home() {
   const saveConversation = (conversation: string, reply: string) => {
     if (!user?.id) return;
     
-    const conversationHistory = JSON.parse(localStorage.getItem(`conversations_${user.id}`) || '[]');
-    const newEntry = {
+    const conversationHistory = JSON.parse(
+      localStorage.getItem(`conversations_${user.id}`) || "[]"
+    ) as ConversationEntry[];
+    const newEntry: ConversationEntry = {
       id: Date.now(),
       conversation,
       reply,
@@ -109,7 +142,10 @@ export default function Home() {
     
     // Immediately update stats in state
     const totalReplies = conversationHistory.length;
-    const totalChars = conversationHistory.reduce((acc: number, conv: any) => acc + (conv.conversation?.length || 0), 0);
+    const totalChars = conversationHistory.reduce(
+      (acc: number, conv) => acc + (conv.conversation?.length || 0),
+      0
+    );
     
     console.log('Updating stats:', { totalReplies, totalChars, previousStats: userStats }); // Debug log
     
@@ -125,7 +161,7 @@ export default function Home() {
     setTimeout(() => setStatsUpdated(false), 1000);
   };
 
-  const updateUser = (updatedUser: any) => {
+  const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
     setShowProfileModal(false);
@@ -152,7 +188,7 @@ export default function Home() {
     }
   };
 
-  const updatePreferences = (newPreferences: any) => {
+  const updatePreferences = (newPreferences: UserPreferences) => {
     setPreferences(newPreferences);
     setTempPreferences(newPreferences);
     if (user?.id) {
@@ -179,7 +215,7 @@ export default function Home() {
   };
 
   const resetPreferences = () => {
-    const defaultPrefs = {
+    const defaultPrefs: UserPreferences = {
       theme: 'dark',
       autoSave: true,
       notifications: true,
@@ -204,13 +240,13 @@ export default function Home() {
     downloadAnchorNode.remove();
   };
 
-  const importPreferences = (event: any) => {
-    const file = event.target.files[0];
+  const importPreferences = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const imported = JSON.parse(e.target?.result as string);
+          const imported = JSON.parse(e.target?.result as string) as UserPreferences;
           setTempPreferences(imported);
           setPreferencesChanged(true);
         } catch {
@@ -837,7 +873,7 @@ export default function Home() {
                   <input
                     type="text"
                     value={user?.name || ''}
-                    onChange={(e) => setUser({ ...user, name: e.target.value })}
+                    onChange={(e) => setUser((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                   />
                 </div>
@@ -847,14 +883,14 @@ export default function Home() {
                   <input
                     type="email"
                     value={user?.email || ''}
-                    onChange={(e) => setUser({ ...user, email: e.target.value })}
+                    onChange={(e) => setUser((prev) => (prev ? { ...prev, email: e.target.value } : prev))}
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                   />
                 </div>
                 
                 <div className="pt-4 flex space-x-3">
                   <button
-                    onClick={() => updateUser(user)}
+                    onClick={() => user && updateUser(user)}
                     className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-colors"
                   >
                     Save Changes
@@ -1010,7 +1046,10 @@ export default function Home() {
                       <select
                         value={tempPreferences.theme}
                         onChange={(e) => {
-                          setTempPreferences({ ...tempPreferences, theme: e.target.value });
+                          setTempPreferences({
+                            ...tempPreferences,
+                            theme: e.target.value as UserPreferences["theme"],
+                          });
                           setPreferencesChanged(true);
                         }}
                         className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"

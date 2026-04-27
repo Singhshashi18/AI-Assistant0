@@ -8,13 +8,13 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
 export async function POST(req: Request) {
   try {
     const { conversation } = await req.json();
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     if (!conversation) {
       return NextResponse.json(
